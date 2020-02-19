@@ -3,7 +3,7 @@ let
     源 = Excel.CurrentWorkbook(){[Name="Table1"]}[Content],
     #"CHANGE ALL TO TEXT" = Table.TransformColumnTypes(源,{{"NAME1", type text}, {"NAME2", type text}, {"NAME3", type text}, {"NAME4", type text}, {"NAME5", type text}, {"NAME6", type text}}),
     去除的文本 = Table.TransformColumns(Table.TransformColumnTypes(#"CHANGE ALL TO TEXT", {{"POSTCODE", type text}}, "zh-CN"),{{"NAME1", Text.Trim, type text}, {"NAME2", Text.Trim, type text}, {"NAME3", Text.Trim, type text}, {"NAME4", Text.Trim, type text}, {"NAME5", Text.Trim, type text}, {"NAME6", Text.Trim, type text}, {"POSTCODE", Text.Trim, type text}}),
-    AddressJudge =(x) => if Text.EndsWith(x,">") then 0 else if Text.StartsWith(x, "CO ") or Text.StartsWith(x, "C\") or Text.StartsWith(x, "C/") or Text.StartsWith(x, "C ") or Text.StartsWith(x, "ATT") or Text.StartsWith(x, """") or Text.StartsWith(x, "'") or Text.PositionOfAny(x,{"0","1","2","3","4","5","6","7","8","9"})>=0 then 1 else 0,
+    AddressJudge =(x) => if Text.EndsWith(x,">") then 0 else if Text.StartsWith(x, "CO ") or Text.StartsWith(x, "C\") or Text.StartsWith(x, "C/") or Text.StartsWith(x, "C ") or Text.StartsWith(x, "ATT") or Text.StartsWith(x, """") or Text.StartsWith(x, "'") or Text.PositionOfAny(x,{"0".."9"})>=0 then 1 else 0,
     TransferColumn1 = Table.ReplaceValue( 去除的文本,each [NAME1], each if AddressJudge([NAME2])=1 then [NAME1]&"," else [NAME1] ,Replacer.ReplaceText,{"NAME1"}),
     //注意以上AddressJudge返回值不是布尔值，所以不能直接放在if判断语句里，而是要用=1来判断
     TransferColumn2=Table.ReplaceValue(TransferColumn1,each [NAME2], each if Text.EndsWith([NAME1],",") then [NAME2] else if Text.EndsWith([NAME2],">") then [NAME2]&"," else if AddressJudge([NAME3])=1 then [NAME2]&"," else [NAME2],Replacer.ReplaceText,{"NAME2"}),
