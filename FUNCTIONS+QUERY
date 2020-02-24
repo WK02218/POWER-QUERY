@@ -1,0 +1,16 @@
+let
+
+    源 = Excel.CurrentWorkbook(){[Name="表6"]}[Content],
+    #"CHANGE ALL TO TEXT" = Table.TransformColumnTypes(源,{{"NAME1", type text}, {"NAME2", type text}, {"NAME3", type text}, {"NAME4", type text}, {"NAME5", type text}, {"NAME6", type text}}),
+    去除的文本 = Table.TransformColumns(Table.TransformColumnTypes(#"CHANGE ALL TO TEXT", {{"POSTCODE", type text}}, "zh-CN"),{{"NAME1", Text.Trim, type text}, {"NAME2", Text.Trim, type text}, {"NAME3", Text.Trim, type text}, {"NAME4", Text.Trim, type text}, {"NAME5", Text.Trim, type text}, {"NAME6", Text.Trim, type text}, {"POSTCODE", Text.Trim, type text}}),
+    替换的值 = Table.ReplaceValue(去除的文本,",","",Replacer.ReplaceText,{"NAME1", "NAME2", "NAME3", "NAME4", "NAME5", "NAME6", "POSTCODE"}),
+    TransferColumn1 = Table.ReplaceValue( 替换的值,each [NAME1], each if NameJudgeFunction([NAME2])=1 then [NAME1] else if AddressJudgeFunction([NAME2])=1 then [NAME1]&"," else [NAME1] ,Replacer.ReplaceText,{"NAME1"}),
+    //注意以上AddressJudge返回值不是布尔值，所以不能直接放在if判断语句里，而是要用=1来判断
+    TransferColumn2=Table.ReplaceValue(TransferColumn1,each [NAME2], each if Text.EndsWith([NAME1],",") then [NAME2] else if Text.EndsWith([NAME2],">") then [NAME2]&"," else if NameJudgeFunction([NAME3])=1 then [NAME2] else if AddressJudgeFunction([NAME3])=1 then [NAME2]&"," else [NAME2],Replacer.ReplaceText,{"NAME2"}),
+    TransferColumn3=Table.ReplaceValue(TransferColumn2,each [NAME3], each if Text.Contains([NAME1]&[NAME2],",") then [NAME3] else if Text.EndsWith([NAME3],">") then [NAME3]&"," else if NameJudgeFunction([NAME4])=1 then [NAME3] else if AddressJudgeFunction([NAME4])=1 then [NAME3]&"," else [NAME3],Replacer.ReplaceText,{"NAME3"}),
+    TransferColumn4=Table.ReplaceValue(TransferColumn3,each [NAME4], each if Text.Contains([NAME1]&[NAME2]&[NAME3],",") then [NAME4] else if Text.EndsWith([NAME4],">") then [NAME4]&"," else if NameJudgeFunction([NAME5])=1 then [NAME4] else if AddressJudgeFunction([NAME5])=1 then [NAME4]&"," else [NAME4],Replacer.ReplaceText,{"NAME4"}),
+    TransferColumn5=Table.ReplaceValue(TransferColumn4,each [NAME5], each if Text.Contains([NAME1]&[NAME2]&[NAME3]&[NAME4],",") then [NAME5] else if Text.EndsWith([NAME5],">") then [NAME5]&"," else if AddressJudgeFunction([NAME6])=1 then [NAME5]&"," else [NAME5],Replacer.ReplaceText,{"NAME5"}),
+    #"ADD COMMA POSITION COLUMN" = Table.AddColumn(TransferColumn5, "Comma Position", each if Text.EndsWith([NAME1], ",") then 1 else if Text.EndsWith([NAME2], ",") then 2 else if Text.EndsWith([NAME3], ",") then 3 else if Text.EndsWith([NAME4], ",") then 4 else if Text.EndsWith([NAME5], ",") then 5 else "NOT FOUND")
+    //注意对整表的trim和clean可能导致不一样的数据出现错误，比如以text为主的列中的纯数字单元格会因为无法转换而报错。以上原因无法重复，可以确定报错是在全体trim步骤之后，但是后来消失了
+in
+    #"ADD COMMA POSITION COLUMN"
