@@ -1,0 +1,11 @@
+let
+    Source = (x) => if Text.EndsWith(x,">") then 0 else if Text.StartsWith(x, "C\") or Text.StartsWith(x, "C/") or Text.StartsWith(x, "C ") or Text.StartsWith(x, "ATT") or Text.StartsWith(x, """") or Text.StartsWith(x, "THE ") or Text.StartsWith(x, "'") or Text.StartsWith(x, "`") or (Text.StartsWith(x, "CO ") and not Text.StartsWith("CO LTD"))
+    or Text.StartsWith(x, "GROUND ") or Text.StartsWith(x, "APPARTMENT ") or Text.StartsWith(x, "UNIT ")
+    or Text.EndsWith(x, " ROAD") or Text.EndsWith(x, " STREET") or Text.EndsWith(x, " LANE") or Text.EndsWith(x, " BLVD") or Text.EndsWith(x, " BVLD") or Text.EndsWith(x, " BOULEVARD") or Text.EndsWith(x, " AVENUE")  or Text.EndsWith(x, " AVE")
+    or Text.EndsWith(x, " FARM") or Text.EndsWith(x, " ESTATE") or Text.EndsWith(x, " TOWER") or Text.EndsWith(x, " TOWERS")
+    or Text.EndsWith(x, " SUITE") or Text.EndsWith(x, " CENTRE") or Text.EndsWith(x, " BUILDING") or Text.EndsWith(x, " VILLAGE") or Text.EndsWith(x, " VILLA") or Text.EndsWith(x, " VALLEY") or Text.EndsWith(x, " VIEW")
+    or Text.EndsWith(x, " CHAMBERS") or Text.EndsWith(x, " CHAMBER") or Text.EndsWith(x, " MANSIONS") or Text.EndsWith(x, " MANSION") or Text.EndsWith(x, " GARDEN") or Text.EndsWith(x, " GARDENS") or Text.EndsWith(x, " HOUSE")
+    or Text.EndsWith(x, " BLOK") or Text.EndsWith(x, " D'ESTE") or Text.EndsWith(x, " COTTAGE") or Text.EndsWith(x, " CROFT") or Text.EndsWith(x, " HALL") or Text.EndsWith(x, " HILL") or Text.EndsWith(x, " LODGE")
+    or Text.PositionOfAny(x,{"0".."9"})>=0 then 1 else 0
+in
+    Source
