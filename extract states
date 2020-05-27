@@ -1,0 +1,34 @@
+let
+    Source = Excel.CurrentWorkbook(){[Name="Table1"]}[Content],
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"NA6", type text}, {"NA5", type text}, {"NA4", type text}, {"NA3", type text}, {"NA2", type text}, {"NA1", type text}}),
+    #"Replaced Value" = Table.ReplaceValue(#"Changed Type",",","",Replacer.ReplaceText,{"NA1", "NA2", "NA3", "NA4", "NA5", "NA6"}),
+    #"Added Custom" = Table.AddColumn(#"Replaced Value", "LAST CELL", each {[NA1],[NA2],[NA3],[NA4],[NA5],[NA6]}{List.NonNullCount({[NA1],[NA2],[NA3],[NA4],[NA5],[NA6]})-1}),
+    #"Uppercased Text" = Table.TransformColumns(#"Added Custom",{{"NA1", Text.Upper, type text}, {"NA2", Text.Upper, type text}, {"NA3", Text.Upper, type text}, {"NA4", Text.Upper, type text}, {"NA5", Text.Upper, type text}, {"NA6", Text.Upper, type text}}),
+    #"Trimmed Text" = Table.TransformColumns(#"Uppercased Text",{{"NA1", Text.Trim, type text}, {"NA2", Text.Trim, type text}, {"NA3", Text.Trim, type text}, {"NA4", Text.Trim, type text}, {"NA5", Text.Trim, type text}, {"NA6", Text.Trim, type text}}),
+    #"Cleaned Text" = Table.TransformColumns(#"Trimmed Text",{{"NA1", Text.Clean, type text}, {"NA2", Text.Clean, type text}, {"NA3", Text.Clean, type text}, {"NA4", Text.Clean, type text}, {"NA5", Text.Clean, type text}, {"NA6", Text.Clean, type text}}),
+    #"Added Custom1" = Table.AddColumn(#"Cleaned Text", "STATE_TEMP", each if Value.Type([POSTCODE])=type number then Text.BetweenDelimiters([LAST CELL]," "," ",{1, RelativePosition.FromEnd}) else [POSTCODE]),
+    TransferNa2 = Table.ReplaceValue(#"Added Custom1", each [NA2], 
+				each if (Value.Type([POSTCODE])=type number and [NA2]=[LAST CELL]) 
+					then Text.BeforeDelimiter([NA2], " ", {1, RelativePosition.FromEnd})
+					else [NA2], Replacer.ReplaceText,{"NA2"}),
+    TransferNa3 = Table.ReplaceValue(#"TransferNa2", each [NA3], 
+				each if (Value.Type([POSTCODE])=type number and [NA3]=[LAST CELL]) 
+					then Text.BeforeDelimiter([NA3], " ", {1, RelativePosition.FromEnd})
+					else [NA3], Replacer.ReplaceText,{"NA3"}),
+    TransferNa4 = Table.ReplaceValue(#"TransferNa3", each [NA4], 
+				each if (Value.Type([POSTCODE])=type number and [NA4]=[LAST CELL]) 
+					then Text.BeforeDelimiter([NA4], " ", {1, RelativePosition.FromEnd})
+					else [NA4], Replacer.ReplaceText,{"NA4"}),
+    TransferNa5 = Table.ReplaceValue(#"TransferNa4", each [NA5], 
+				each if (Value.Type([POSTCODE])=type number and [NA5]=[LAST CELL]) 
+					then Text.BeforeDelimiter([NA5], " ", {1, RelativePosition.FromEnd})
+					else [NA4], Replacer.ReplaceText,{"NA5"}),
+    TransferNa6 = Table.ReplaceValue(#"TransferNa5", each [NA6], 
+				each if (Value.Type([POSTCODE])=type number and [NA6]=[LAST CELL]) 
+					then Text.BeforeDelimiter([NA6], " ", {1, RelativePosition.FromEnd})
+					else [NA6], Replacer.ReplaceText,{"NA6"}),
+    #"Removed Columns" = Table.RemoveColumns(TransferNa6,{"LAST CELL"}),
+    #"Reordered Columns" = Table.ReorderColumns(#"Removed Columns",{"NA1", "NA2", "NA3", "NA4", "NA5", "NA6", "STATE_TEMP", "POSTCODE"}),
+    #"Renamed Columns" = Table.RenameColumns(#"Reordered Columns",{{"STATE_TEMP", "STATE"}})
+in
+    #"Renamed Columns"
